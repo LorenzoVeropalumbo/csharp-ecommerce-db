@@ -17,12 +17,12 @@ public class EcommerceDbContext : DbContext
 
 public class Order
 {
-
     public int Id { get; set; }
     public DateTime Date { get; set; }
     public float Amount { get; set; }
     public string Status { get; set; }
 
+    // FK
     public int CustomerId { get; set; }
     public Customer Customer { get; set; }
 
@@ -30,23 +30,22 @@ public class Order
     public Employee Employee { get; set; }
 
     public List<Product> Products { get; set; }
+    public List<Payment> Payments { get; set; }
 }
 
 public class Customer
 {
-
     public int Id { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
     public string Email { get; set; }
 
     public List<Order> Orders { get; set; }
-    public List<Payment> Payments { get; set; }
+
 }
 
 public class Employee
 {
-
     public int Id { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
