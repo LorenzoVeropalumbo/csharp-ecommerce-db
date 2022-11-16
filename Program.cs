@@ -49,7 +49,7 @@ public class Employee
     public int Id { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
-    public string level { get; set; }
+    public string Level { get; set; }
 
     public List<Order> Orders { get; set; }
 }
@@ -57,11 +57,12 @@ public class Employee
 public class Payment
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string Surname { get; set; }
-    public string level { get; set; }
+    public DateTime Date { get; set; }
+    public float Amount { get; set; }
+    public string Status { get; set; }
 
-    public List<Order> Orders { get; set; }
+    public int OrderId { get; set; }
+    public Order Order { get; set; }
 }
 
 public class Product
@@ -69,7 +70,7 @@ public class Product
     public int Id { get; set; }
     public string Name { get; set; }
     public string description { get; set; }
-    public float price { get; set; }
+    public float Price { get; set; }
 
     public List<Order> Orders { get; set; }
 }
