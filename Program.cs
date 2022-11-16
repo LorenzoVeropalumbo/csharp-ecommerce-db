@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 
 EcommerceDbContext db = new EcommerceDbContext();
@@ -14,15 +15,41 @@ switch (Response)
     case 1:
         while (mainLoop)
         {
-            stampaProdotti();
-            Console.WriteLine("per selezionare più prodotti scrivere ES(prodotto1,prodotto2....)");
-            Console.WriteLine("1. Seleziona un prodotto");
-            string[] Prodotto = Console.ReadLine().Split(',');
+            stampaOrdini();
+            AcquistoOrdine();
+            mainLoop = false;
         }
         break;
     case 2:
         while (mainLoop)
         {
+            Console.WriteLine("1. Crea un ordine");
+            Console.WriteLine("2. Rimuovi un ordine");
+            Console.WriteLine("3. Stampa ordini");
+            Console.WriteLine("4. Spedisci ordine");
+            int resonse = Convert.ToInt32(Console.ReadLine());
+            switch (resonse)
+            {
+                case 1:
+                    stampaProdotti();
+                    Console.WriteLine("1. Seleziona un prodotto");
+                    int Prodotto = Convert.ToInt32(Console.ReadLine());
+                    CreazioneOrdine(Prodotto);
+                    break;
+                case 2:
+                    stampaOrdini();
+                    OrdineConsegnato();
+                    break;
+                case 3:
+                    stampaOrdini();
+                    break;
+                case 4:
+                    stampaOrdini();
+                    SpedisciOrdine();
+                    break;
+                default:
+                    break;
+            }
 
         }
         break;
@@ -113,17 +140,91 @@ void CheckBeforeStartApplication()
 void stampaProdotti()
 {
     List<Product> products = db.Products.ToList<Product>();
-    int i = 0;
     foreach (Product product in products)
     {
-        Console.WriteLine(++i + " - " + product.Name + " - " + product.description + " - " + product.Price + " $");
+        Console.WriteLine(product.Id + " - " + product.Name + " - " + product.description + " - " + product.Price + " $");
     }
 }
 
-void CreazioneOrdine()
+void stampaOrdini()
+{
+    try
+    {
+        List<Order> orders = db.Orders.ToList<Order>();
+
+        foreach (Order order in orders)
+        {
+            Console.WriteLine(order.Id + " - " + order.Amount + " $" + " - " + order.Date + " - " + order.EmployeeId);
+        }
+    }
+    catch (ArgumentNullException)
+    {
+        Console.WriteLine("non ci sono ordini");
+    }
+
+}
+
+void CreazioneOrdine(int Prodotto)
 {
     Console.WriteLine("inserisci il tuo id");
     int id = Convert.ToInt32(Console.ReadLine());
-    Customer marco = db.Customers.Where(x => x.Email == ).first();
+    Employee employee = db.Employees.Where(x => x.Id == id).First();
+    Product product = db.Products.Where(x => x.Id == Prodotto).Include("Orders").First();
+    Order ordine = new Order() { Date = DateTime.Now, Amount = product.Price, Status = "creato",CustomerId = 1,EmployeeId = employee.Id};
 
+    product.Orders.Add(ordine);
+
+    db.SaveChanges();
+    Console.WriteLine("Ordine creato con successo!!!");
+}
+
+void AcquistoOrdine()
+{
+    Console.WriteLine("inserisci l'id del tuo ordine");
+    int id = Convert.ToInt32(Console.ReadLine());
+    Order ordine = db.Orders.Where(x => x.Id == id).Include("Payments").First();
+    Console.WriteLine("inserisci la tua email");
+    string email = Console.ReadLine();
+    bool CheckCustomer = db.Customers.Where(x => x.Email == email).Any();
+    if (CheckCustomer)
+    {
+        Customer customer = db.Customers.Where(x => x.Email == email).First();
+        ordine.CustomerId = customer.Id;
+        Payment payment = new Payment() { OrderId = ordine.Id, Amount = ordine.Amount, Status = "pagato" , Date = DateTime.Now };
+        db.Payments.Add(payment);
+        db.SaveChanges();
+    }
+    else
+    {
+        Console.WriteLine("Non sei registrato");
+        return;
+    }
+
+    
+    
+}
+
+void SpedisciOrdine()
+{
+    List<Order> ordini = db.Orders.Where(x => x.Status == "pagato").ToList();
+    foreach (Order order in ordini)
+    {
+        Console.WriteLine(order.Id + " - " + order.Amount + " $" + " - " + order.Date + " - " + order.EmployeeId);
+    }
+    Console.WriteLine("inserisci l'id dell' ordine da spedire");
+    int id = Convert.ToInt32(Console.ReadLine());
+    Order ordine = db.Orders.Where(x => x.Id == id).First();
+    ordine.Status = "Spedito";
+
+    db.SaveChanges();
+}
+
+void OrdineConsegnato()
+{
+    Console.WriteLine("inserisci l'id del tuo ordine");
+    int id = Convert.ToInt32(Console.ReadLine());
+    Order ordine = db.Orders.Where(x => x.Id == id).First();
+
+    db.Orders.Remove(ordine);
+    db.SaveChanges();
 }
